@@ -14,25 +14,7 @@ router.get('/:projectId/tasks', authMiddleware, async (req, res) => {
   }
 });
 
-// Create a task
-router.post('/:projectId/tasks', authMiddleware, async (req, res) => {
-  const { name, dueDate } = req.body;
-  try {
-    const taskCount = await Task.countDocuments({ projectId: req.params.projectId });
-    const task = new Task({
-      projectId: req.params.projectId,
-      name,
-      dueDate,
-      status: 'To Do',
-      completed: false,
-      order: taskCount, // put new task at end
-    });
-    await task.save();
-    res.json(task);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create task' });
-  }
-});
+
 
 // Bulk reorder for drag-and-drop (place first to take precedence)
 router.put('/:projectId/tasks/reorder', authMiddleware, async (req, res) => {
@@ -82,6 +64,26 @@ router.put('/:projectId/tasks/:taskId', authMiddleware, async (req, res) => {
     res.json(task);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update task' });
+  }
+});
+
+// Create a task
+router.post('/:projectId/tasks', authMiddleware, async (req, res) => {
+  const { name, dueDate } = req.body;
+  try {
+    const taskCount = await Task.countDocuments({ projectId: req.params.projectId });
+    const task = new Task({
+      projectId: req.params.projectId,
+      name,
+      dueDate,
+      status: 'To Do',
+      completed: false,
+      order: taskCount, // put new task at end
+    });
+    await task.save();
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create task' });
   }
 });
 
