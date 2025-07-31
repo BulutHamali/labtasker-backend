@@ -16,10 +16,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request at ${req.path}`);
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/tasks', taskRoutes); // Temporary change 
+app.use('/api/tasks', taskRoutes);
 
 // Fix for __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
