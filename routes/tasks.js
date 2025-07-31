@@ -1,72 +1,95 @@
-import express from "express";
-import Task from "../models/Task.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+import express from 'express';
+import Task from '../models/Task.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Get tasks for a project (with validation)
-router.get("/:projectId/tasks", authMiddleware, async (req, res) => {
-  const { projectId } = req.params;
-  if (!projectId) {
-    return res.status(400).json({ error: "Project ID is required" });
-  }
+// Get all tasks for a project
+router.get('/:projectId/tasks', authMiddleware, async (req, res) => {
   try {
-    const tasks = await Task.find({ projectId });
+    const tasks = await Task.find({ projectId: req.params.projectId }).sort({ order: 1 });
     res.json(tasks);
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    res.status(500).json({ error: "Failed to fetch tasks" });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 });
 
-// Create task (with validation)
-router.post("/:projectId/tasks", authMiddleware, async (req, res) => {
-  const { projectId } = req.params;
+// Create a task
+router.post('/:projectId/tasks', authMiddleware, async (req, res) => {
   const { name, dueDate } = req.body;
-
-  if (!projectId) {
-    return res.status(400).json({ error: "Project ID is required" });
-  }
-  if (!name) {
-    return res.status(400).json({ error: "Task name is required" });
-  }
-
   try {
-    const task = new Task({ projectId, name, dueDate });
+    const taskCount = await Task.countDocuments({ projectId: req.params.projectId });
+    const task = new Task({
+      projectId: req.params.projectId,
+      name,
+      dueDate,
+      status: 'To Do',
+      completed: false,
+      order: taskCount, // put new task at end
+    });
     await task.save();
     res.json(task);
-  } catch (error) {
-    console.error("Error creating task:", error);
-    res.status(500).json({ error: "Failed to create task" });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create task' });
   }
 });
 
-// Update task
-router.put("/tasks/:taskId", authMiddleware, async (req, res) => {
-  const { name, completed, dueDate } = req.body;
+// Update a task (edit, mark complete, reorder, etc.)
+router.put('/:projectId/tasks/:taskId', authMiddleware, async (req, res) => {
+  const { name, dueDate, completed, status, order } = req.body;
   try {
-    const task = await Task.findByIdAndUpdate(
-      req.params.taskId,
-      { name, completed, dueDate },
+    const task = await Task.findOneAndUpdate(
+      { _id: req.params.taskId, projectId: req.params.projectId },
+      { name, dueDate, completed, status, order },
       { new: true }
     );
-    if (!task) return res.status(404).json({ error: "Task not found" });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json(task);
-  } catch (error) {
-    console.error("Error updating task:", error);
-    res.status(500).json({ error: "Failed to update task" });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update task' });
   }
 });
 
-// Delete task
-router.delete("/tasks/:taskId", authMiddleware, async (req, res) => {
+// Bulk reorder for drag-and-drop
+router.put('/:projectId/tasks/reorder', authMiddleware, async (req, res) => {
+  console.log('Reorder request received:', { params: req.params, body: req.body });
+  const { updates } = req.body;
+  if (!updates || !Array.isArray(updates)) {
+    return res.status(400).json({ error: 'Invalid updates array' });
+  }
   try {
-    const task = await Task.findByIdAndDelete(req.params.taskId);
-    if (!task) return res.status(404).json({ error: "Task not found" });
-    res.json({ message: "Task deleted" });
-  } catch (error) {
-    console.error("Error deleting task:", error);
-    res.status(500).json({ error: "Failed to delete task" });
+    const results = await Promise.all(
+      updates.map(({ taskId, status, order }) =>
+        Task.findOneAndUpdate(
+          { _id: taskId, projectId: req.params.projectId },
+          { status, order },
+          { new: true, runValidators: true, upsert: false }
+        )
+      )
+    );
+    const failedUpdates = results.filter(result => !result);
+    if (failedUpdates.length > 0) {
+      return res.status(404).json({ error: 'One or more tasks not found' });
+    }
+    console.log('Reorder successful:', results);
+    res.json({ message: 'Reordered successfully' });
+  } catch (err) {
+    console.error('Reorder error details:', err);
+    res.status(500).json({ error: `Failed to reorder tasks: ${err.name}: ${err.message}` });
+  }
+});
+
+// Delete a task (must match project)
+router.delete('/:projectId/tasks/:taskId', authMiddleware, async (req, res) => {
+  try {
+    const deleted = await Task.findOneAndDelete({
+      _id: req.params.taskId,
+      projectId: req.params.projectId,
+    });
+    if (!deleted) return res.status(404).json({ error: 'Task not found' });
+    res.json({ message: 'Task deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete task' });
   }
 });
 
