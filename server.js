@@ -10,7 +10,6 @@ import projectRoutes from './routes/projects.js';
 import taskRoutes from './routes/tasks.js';
 
 dotenv.config();
-connectDB();
 
 const app = express();
 app.use(cors());
@@ -35,4 +34,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+connectDB().then(() => {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+});
