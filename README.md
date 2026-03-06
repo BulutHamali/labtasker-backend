@@ -198,7 +198,7 @@ The script registers a test user, logs in, creates a project and task, updates a
 3. Set the following environment variables in the Render dashboard:
    - `MONGO_URI`
    - `JWT_SECRET`
-4. Set the start command to `node server.js` for production.
+4. Set the start command to `npm start`.
 
 ---
 
