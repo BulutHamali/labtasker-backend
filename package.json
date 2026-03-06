@@ -1,14 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "REST API backend for managing research projects and tasks, built with Node.js, Express, and MongoDB",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Bulut Hamali <buluthamali@gmail.com>",
   "license": "ISC",
   "type": "module",
   "dependencies": {
