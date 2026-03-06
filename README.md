@@ -117,8 +117,19 @@ Response:
     "dueDate": "2025-08-15"
   }
   ```
-- Update Task – PUT /api/projects/tasks/:taskId
-- Delete Task – DELETE /api/projects/tasks/:taskId
+- Update Task – PUT /api/projects/:projectId/tasks/:taskId
+- Delete Task – DELETE /api/projects/:projectId/tasks/:taskId
+- Bulk Reorder – PUT /api/projects/:projectId/tasks/reorder
+  ```json
+  {
+    "updates": [
+      { "taskId": "<id>", "status": "In Progress", "order": 0 },
+      { "taskId": "<id>", "status": "To Do", "order": 1 }
+    ]
+  }
+  ```
+
+`status` accepts: `"To Do"`, `"In Progress"`, `"Done"`
 
 # Testing the API: Why curl is Preferred
 
