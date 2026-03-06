@@ -30,11 +30,11 @@ curl -s -X GET "$BASE_URL/projects/$PROJECT_ID/tasks" \  -H "Authorization: Bear
 echo -e "\n"
 
 echo "=== Update Task (mark completed) ==="
-curl -s -X PUT "$BASE_URL/projects/tasks/$TASK_ID" \  -H "Content-Type: application/json" \  -H "Authorization: Bearer $TOKEN" \  -d '{"completed":true}' | jq
+curl -s -X PUT "$BASE_URL/projects/$PROJECT_ID/tasks/$TASK_ID" \  -H "Content-Type: application/json" \  -H "Authorization: Bearer $TOKEN" \  -d '{"completed":true}' | jq
 echo -e "\n"
 
 echo "=== Delete Task ==="
-curl -s -X DELETE "$BASE_URL/projects/tasks/$TASK_ID" \  -H "Authorization: Bearer $TOKEN" | jq
+curl -s -X DELETE "$BASE_URL/projects/$PROJECT_ID/tasks/$TASK_ID" \  -H "Authorization: Bearer $TOKEN" | jq
 echo -e "\n"
 
 echo "=== Confirm Tasks for Project After Deletion ==="

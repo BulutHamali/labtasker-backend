@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/tasks', taskRoutes);
+app.use('/api/projects', taskRoutes);
 
 // Fix for __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
